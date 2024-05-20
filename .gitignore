@@ -1,0 +1,69 @@
+# Common build results
+bin/
+obj/
+publish/
+wwwroot/
+
+# User-specific files
+*.user
+*.suo
+*.sln.docstates
+
+# Logs and databases
+*.log
+*.sql
+*.sqlite
+*.mdf
+*.ldf
+
+# Environment variable files
+.env
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# Node.js packages
+node_modules/
+
+# Yarn
+yarn.lock
+yarn-error.log
+
+# Visual Studio Code directories
+.vscode/
+.vscode/*
+
+# Rider
+.idea/
+.idea/*
+*.sln.iml
+*.sln.*
+
+# ASP.NET Core backend specific folders and files
+# Data/
+# dtos/
+# Endpoints/
+# Entities/
+# Mapping/
+Properties/
+appsettings.Development.json
+appsettings.json
+# games.http
+GameStore.Api.csproj
+GameStore.Api.sln
+GameStore.db
+# genres.http
+Program.cs
+
+# Blazor frontend specific folders and files
+# Clients/
+# Components/
+# Convertors/
+# Models/
+properties/
+GameStore.Frontend.csproj
+GameStore.Frontend.csproj.user
+GameStore.Frontend.sln
+# Program.cs

@@ -1,0 +1,10 @@
+﻿<!--// TS-00:11:19-00:56:37 Find the assembly-->
+<Router AppAssembly="typeof(Program).Assembly">
+    <!--// TS-00:11:19-00:56:37 route data includes everything about the component we are to render-->
+    <Found Context="routeData">
+        <!--// TS-00:11:19-00:56:37 render the component based on routeData received. Layout is the component that wraps the component into the main layout. MainLayout is in Layout folder. It is a fragment thats going to be rendered-->
+        <RouteView RouteData="routeData" DefaultLayout="typeof(Layout.MainLayout)" />
+        <!--// TS-00:11:19-00:56:37 setup the initial focus inside the component thats being rendered. By default the Home.razor in the pages is rendered-->
+        <FocusOnNavigate RouteData="routeData" Selector="h1" />
+    </Found>
+</Router>

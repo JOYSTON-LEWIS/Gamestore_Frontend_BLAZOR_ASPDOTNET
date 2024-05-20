@@ -1,0 +1,85 @@
+@* TS-03:08:57-03:55:36 Delete Game Popup Boiler Code *@
+@* TS-03:08:57-03:55:36 commented this code <h3>DeleteGame</h3> *@
+
+@* TS-03:08:57-03:55:36 Dependency Injection for GamesClient *@
+@inject GamesClient Client
+@* TS-03:08:57-03:55:36 Dependency Injection for NavigationManager *@
+@inject NavigationManager NavigationManager
+@* TS-03:55:36-04:20:39 Upgrading from static SSR to Interactive SSR 
+with the import to ensure the deletion refetches the changed html of 
+the home component and returns to server*@
+@rendermode InteractiveServer
+
+@* TS-03:08:57-03:55:36 template from bootstrap button trigger model *@
+@* TS-03:08:57-03:55:36 setting the id dynamically for each game *@
+<div class="modal fade" id="@GetModalId(Game)" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+      <div class="modal-header">
+        @* TS-03:08:57-03:55:36 setting the title dynamically using variable instead of hard coded Modal title *@
+        <h1 class="modal-title fs-5" id="exampleModalLabel">@title</h1>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      @* TS-03:08:57-03:55:36 
+      <div class="modal-body">
+        ...
+      </div>
+      *@
+      <div class="modal-footer">
+        @* TS-03:08:57-03:55:36 Renaming the buttons from Close to Cancel and Save Changes to Delete *@
+        @* TS-03:08:57-03:55:36 data-bs-dismiss="modal" this attribute tells bootstrap to make modal 
+        disappear so use it for delete button also. Onclick code to trigger the function on click of button *@
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        @* TS-04:31:03-04:55:35 <button type="button" 
+                class="btn btn-primary" 
+                data-bs-dismiss="modal"
+                @onclick="@Confirm">Delete</button> *@
+        <button type="button" 
+                class="btn btn-primary" 
+                data-bs-dismiss="modal"
+                @onclick="@ConfirmAsync">Delete</button>
+                
+      </div>
+    </div>
+  </div>
+</div>
+
+@* TS-03:08:57-03:55:36 Delete Game Popup Boiler Code *@
+@code {
+    // TS-03:08:57-03:55:36 whoever invokes this component has to pass the actual game
+    [Parameter]
+    public GameSummary? Game {get; set;}
+
+    // TS-03:08:57-03:55:36 dynamic title using lifecycle function and variable
+    private string title = string.Empty;
+
+    // TS-03:08:57-03:55:36 dynamic title using lifecycle function and variable
+    protected override void OnParametersSet()
+    {
+        // TS-03:08:57-03:55:36 dynamic title using lifecycle function and variable
+        title = $"Delete {Game?.Name}?";
+    }
+
+    // TS-03:08:57-03:55:36 
+    public static string GetModalId(GameSummary? game)
+    {
+        // TS-03:08:57-03:55:36 
+        ArgumentNullException.ThrowIfNull(game);
+        // TS-03:08:57-03:55:36 
+        return $"deleteModal-{game.Id}";
+    }
+
+    // TS-03:08:57-03:55:36
+    // TS-04:31:03-04:55:35 converting to async await, earlier code below
+    // TS-04:31:03-04:55:35 private void Confirm() changed to
+    private async Task ConfirmAsync()
+    {
+        // TS-03:08:57-03:55:36 ! here denotes that the developer knows that it will 
+        // TS-03:08:57-03:55:36 have a value and will never be null so ignore the warning
+        // TS-04:31:03-04:55:35 converting to async await, earlier code below
+        // TS-04:31:03-04:55:35 Client.DeleteGame(Game!.Id);
+        await Client.DeleteGameAsync(Game!.Id);
+        // TS-03:08:57-03:55:36 Trigger refresh everything in Home Component after deletion
+        NavigationManager.Refresh();
+    }
+}

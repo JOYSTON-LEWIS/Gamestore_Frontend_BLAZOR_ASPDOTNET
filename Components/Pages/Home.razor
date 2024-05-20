@@ -1,0 +1,187 @@
+﻿@page "/"
+@* TS-00:56:37-01:13:00 We already have import for "using GameStore.Frontend" so we dont need to add full namespace as
+done by auto fix of vscode like so "using GameStore.Frontend"
+@* TS-01:38:54-02:19:55 moved this to Imports.razor 
+hence comment / remove from here
+@using Models
+@*TS-01:21:39-01:38:54 
+@using Clients *@
+
+@* TS-01:21:39-01:38:54 Introducing Dependency Injection for GamesClient *@
+@* TS-01:21:39-01:38:54 Prefer Pascal Case for Dependency Injection *@
+@* TS-02:32:35-02:53:03 finally we need to register the service *@
+@* TS-02:32:35-02:53:03 so that dependency Injection works *@
+@inject GamesClient Client
+
+@* TS-04:55:35-05:05:54 Implementing Stream Rendering to provide better user 
+experience by loading the html even when data is not fully retrived so that 
+the user knows that the page is fetching the data*@
+@attribute [StreamRendering]
+
+@* TS-00:56:37-01:13:00 Changing Page title to Game Catalog *@
+<PageTitle>Game Catalog</PageTitle>
+
+@* TS-02:19:55-02:32:35 routing to edit game page*@
+<div class="mt-2">
+    <a class="btn btn-primary" role="button" href="/editgame">New Game</a>
+</div>
+
+@* TS-00:56:37-01:13:00 removed code: <h1>Hello, world!</h1> *@
+@* TS-00:56:37-01:13:00 removed code: Welcome to your new app. *@
+
+@*TS-01:21:39-01:38:54 adding condition to handle chance that games is null*@
+@if(games is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @* TS-00:56:37-01:13:00 Html Table Creation *@
+    @* TS-01:13:00-01:21:39 Css Classes added table table-striped table-bordered table-hover*@
+    @* TS-01:21:39-01:38:54 mt-3 does margin top *@
+    <table class="table table-striped table-bordered table-hover mt-3">
+        @* TS-00:56:37-01:13:00 Table Head added *@
+        @* TS-01:13:00-01:21:39 table dark *@
+        <thead class="table-dark">
+            @* TS-00:56:37-01:13:00 Column added *@
+            <th>Id</th>
+            @* TS-00:56:37-01:13:00 Column added *@
+            <th>Name</th>
+            @* TS-00:56:37-01:13:00 Column added *@
+            <th>Genre</th>
+            @* TS-00:56:37-01:13:00 Column added *@
+            @* TS-01:13:00-01:21:39 text-end *@
+            <th class="text-end">Price</th>
+            @* TS-00:56:37-01:13:00 Column added *@
+            <th>Release Date</th>
+            @* TS-00:56:37-01:13:00 column for actions for user *@
+            <th></th>
+        </thead>
+        <tbody>
+            @* TS-00:56:37-01:13:00 For Each iteration on C# array *@
+            @*TS-01:21:39-01:38:54 games array can be nullable, so if 
+            empty array then code will break here so lets add if else for that*@
+            @foreach (var game in games)
+            {
+                @* TS-00:56:37-01:13:00 Table Row added *@
+                <tr>
+                    @* TS-00:56:37-01:13:00 Row Data added *@
+                    <td>@game.Id</td>
+                    @* TS-00:56:37-01:13:00 Row Data added *@
+                    <td>@game.Name</td>
+                    @* TS-00:56:37-01:13:00 Row Data added *@
+                    <td>@game.Genre</td>
+                    @* TS-00:56:37-01:13:00 Row Data added *@
+                    @* TS-01:13:00-01:21:39 text-end *@
+                    @* TS-01:13:00-01:21:39 formatting Price like a currency *@
+                    <td class="text-end">@game.Price.ToString("C2")</td>
+                    @* TS-00:56:37-01:13:00 Row Data added *@
+                    <td>@game.ReleaseDate</td>
+                    @* TS-00:56:37-01:13:00 row for actions for user to be added later *@
+                    <td>
+                        @* TS-03:08:57-03:55:36 edit and delete buttons (me is margin end or margin right) 
+                        d-flex to show buttons in row instead of column*@
+                        <div class="d-flex">
+                            @* TS-03:08:57-03:55:36 *@
+                            <a class="btn btn-primary me-2" role="button" href="@GameUrl(game.Id)">
+                                @* TS-03:08:57-03:55:36 *@
+                                <i class="bi bi-pencil"></i>
+                            </a>
+                            @* TS-03:08:57-03:55:36 data-bs-toggle is toggle for dialog *@
+                            @* TS-03:08:57-03:55:36 data-bs-target will be the modal to be shown including parameters if any *@
+                            @* TS-03:08:57-03:55:36 <i></i> will be the icon from bootstrap for delete button *@
+                            <button class="btn btn-danger" 
+                                    data-bs-toggle="modal"
+                                    data-bs-target="@GetDeleteModalId(game)">
+                            <i class="bi bi-x-lg"></i>
+                            </button>
+                        </div>
+                         @* TS-03:08:57-03:55:36 Nesting the Delete Game Component with its parameter*@
+                         @* TS-03:08:57-03:55:36 When we are rendering each of the rows for each game 
+                         we are also rendering the html for delete modal for each game*@
+                        <DeleteGame Game="@game" />
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+@*TS-01:21:39-01:38:54 closing brackets for else case*@
+}
+
+
+@* TS-00:56:37-01:13:00 separate code section to input functions, variables etc to work with HTML *@
+@code {
+    // TS-01:21:39-01:38:54 instantiating our GamesClient
+    // TS-02:32:35-02:53:03 We are creating a new instance of game client here and in Home.razor
+    // TS-02:32:35-02:53:03 this is why the list of games in EditGame.razor is not showing up when we 
+    // TS-02:32:35-02:53:03 add a new game using editgame.razor as the instances are different. Here
+    // TS-02:32:35-02:53:03 is where we will use dependency injection to update the instances
+    // TS-02:32:35-02:53:03 commented code during this timestamp to instead use dependency injection:
+    // TS-02:32:35-02:53:03 private GamesClient client = new();
+
+    // TS-01:21:39-01:38:54 games can be null when component initializes
+    private GameSummary[]? games;
+
+    // TS-01:21:39-01:38:54
+    // TS-04:31:03-04:55:35 As the function being called within is async we need to chnage this to async
+    // TS-04:31:03-04:55:35 async Task OnInitializedAsync replaces void OnInitialized
+    // TS-04:31:03-04:55:35 games = Client.GetGames(); changes to games = await Client.GetGamesAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        // TS-01:21:39-01:38:54 created or autogenerated but commented 
+        // base.OnInitialized();
+        // TS-01:21:39-01:38:54 
+        // TS-02:32:35-02:53:03 Using the injected instance of Games Client
+        // TS-02:32:35-02:53:03 Prefer Pascal Case for Dependency Injection
+        // TS-02:32:35-02:53:03 finally we need to register the service 
+        // TS-02:32:35-02:53:03 so that dependency Injection works
+        // TS-04:31:03-04:55:35 rename to GetGamesAsync
+        // TS-04:31:03-04:55:35 If we turn something to async we 
+        // TS-04:31:03-04:55:35 need to change its parent function also to async
+        games = await Client.GetGamesAsync();
+    } 
+    
+    // TS-03:08:57-03:55:36 function to get the game Id to pass in href
+    private static string GameUrl(int id) => $"/editgame/{id}";
+
+    // TS-03:08:57-03:55:36 
+    private string GetDeleteModalId(GameSummary game)
+    {
+        // TS-03:08:57-03:55:36 In html we locate elements that are id with # so we use # here
+        // TS-03:08:57-03:55:36 GetModalId is static so we dont need to redeclare it as its not going to get modified
+        return $"#{DeleteGame.GetModalId(game)}";
+    }
+
+
+    // TS-00:56:37-01:13:00
+    // TS-01:21:39-01:38:54 shifting all this code that contained the games array 
+    // TS-01:21:39-01:38:54 to clients folder to avoid this component filling up
+    @*
+    private GameSummary[] games = [
+   new(){
+            Id = 1,
+            Name = "Street Fighter II",
+            Genre = "Fighting",
+            // TS-00:56:37-01:13:00 M specifies decimal
+            Price = 19.99M,
+            ReleaseDate = new DateOnly(1992, 7, 15)
+        },
+    new(){
+            Id = 2,
+            Name = "Final Fantasy XIV",
+            Genre = "Roleplaying",
+            // TS-00:56:37-01:13:00 M specifies decimal
+            Price = 59.99M,
+            ReleaseDate = new DateOnly(2010, 9, 30)
+        },
+    new(){
+            Id = 3,
+            Name = "FIFA 23",
+            Genre = "Sports",
+            // TS-00:56:37-01:13:00 M specifies decimal
+            Price = 69.99M,
+            ReleaseDate = new DateOnly(2022, 9, 27)
+        }
+    ];
+    *@
+}

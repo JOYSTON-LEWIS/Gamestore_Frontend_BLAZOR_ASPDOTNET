@@ -1,0 +1,261 @@
+@*TS-01:38:54-02:19:55 Page Navigation added*@
+@page "/editgame"
+
+@*TS-03:08:57-03:55:36 Route Parameters *@
+@page "/editgame/{id:int}"
+
+@* TS-03:55:36-04:20:39 Upgrading from static SSR to Interactive SSR with the import
+ to ensure html form error messages update on user input instead of save button click*@
+@rendermode InteractiveServer
+
+@* TS-01:38:54-02:19:55 newly created client import
+@* TS-01:38:54-02:19:55 moved this to Imports.razor 
+hence comment / remove from here
+@using Clients
+@*TS-01:38:54-02:19:55
+@using Models; *@
+
+@* TS-01:21:39-01:38:54 Introducing Dependency Injection for GamesClient *@
+@* TS-01:21:39-01:38:54 Prefer Pascal Case for Dependency Injection *@
+@* TS-02:32:35-02:53:03 finally we need to register the service *@
+@* TS-02:32:35-02:53:03 so that dependency Injection works *@
+@inject GamesClient GamesClient
+
+@* TS-02:32:35-02:53:03 Dependency Injection for Genres Cleint *@
+@inject GenresClient GenresClient
+
+@* TS-02:19:55-02:32:35 initializing the Navigation component using dependency inject*@
+@inject NavigationManager NavigationManager;
+
+@*TS-01:38:54-02:19:55 Page Title added*@
+@*TS-03:08:57-03:55:36 Dynamic Title, hardcoded New Game replaced with variable*@ 
+<PageTitle>@title</PageTitle>
+
+@*TS-01:38:54-02:19:55 Default Code of razor file creation <h3>EditGame</h3> modified*@
+@*TS-03:08:57-03:55:36 Dynamic Title, hardcoded New Game replaced with variable*@ 
+<h3>@title</h3>
+
+@*TS-01:38:54-02:19:55 null check for genres array on initial load*@
+@*TS-01:38:54-02:19:55 null check for game variable on initial load 
+after OnParametersSet function and its logic was introduced*@
+@if (genres is null || game is null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    @*TS-01:38:54-02:19:55 bootstrap row added to limit form width*@
+    <div class="row">
+        @*TS-01:38:54-02:19:55 bootstrap col-md-4 (4 out of 12 of bootstrap grid consumed) 
+        added to limit form width*@
+        <div class="col-md-4">
+            @*TS-01:38:54-02:19:55 copied from bootstrap forms section and keeping only one input field*@
+            @*TS-01:38:54-02:19:55 converting basic form to asp form using EditForm*@
+            @*TS-01:38:54-02:19:55 Model="@game" is like ngModel FormName = "editGame" is like formGroup in angular*@
+            @*TS-01:38:54-02:19:55 adding OnSubmit to handle user submitting a form. Then lets aqdd a button for the user to submit the form*@
+            @*TS-02:53:03-03:08:57 OnSubmit replaced by OnValidSubmit to ensure HandleSubmit is invoked only for valid form data*@
+            @*TS-04:31:03-04:55:35 invoking the async function instead of sync one
+            <EditForm Model="@game" FormName = "editGame" OnValidSubmit="HandleSubmit">*@
+            @* TS-04:55:35-05:05:54 Implementing Enhance to re render only sections of html that get changed
+            thus improving speed of navigation to other page as it uses fetch instead of get in network tab*@
+            <EditForm Model="@game" FormName = "editGame" OnValidSubmit="HandleSubmitAsync" Enhance>
+            @*TS-02:53:03-03:08:57 embedding DataAnnotationsValidator*@
+            <DataAnnotationsValidator />
+            @*TS-02:53:03-03:08:57 embedding ValidationSummary to get summary of every validation that is wrong with form*@
+            <ValidationSummary />
+            <div class="mb-3">
+                @*TS-01:38:54-02:19:55 replacing default label name and the text to Name*@
+                <label for="name" class="form-label">Name:</label>
+                @*TS-01:38:54-02:19:55 replacing input to InputText control*@
+                @*TS-01:38:54-02:19:55 replacing id value to be same as label for value above, this is important*@
+                @*TS-01:38:54-02:19:55 removing aria-describedby="emailHelp"*@
+                @*TS-01:38:54-02:19:55 last imp thing is to use here is bound property, we are bound in the game 
+                property here but we have to tell it to which property on that game object we are going to bind 
+                this input text component. we do it by bind-Value="game.Name"*@
+                <InputText id="name" @bind-Value="game.Name" class="form-control"></InputText>
+                @*TS-02:53:03-03:08:57 Validation messages added, need to specifidy validations applied for which field to be shown here*@
+                <ValidationMessage For="()=> game.Name" />
+            </div>
+            @*TS-01:38:54-02:19:55 creating these input sections same as the first*@
+            <div class="mb-3">
+                @*TS-01:38:54-02:19:55 replacing labels with Genre Field*@
+                <label for="genre" class="form-label">Genre:</label>
+                @*TS-01:38:54-02:19:55 We wont have Input Text here, we will have dropdown so*@
+                @*TS-01:38:54-02:19:55 replacing id and field mapped with Genre Fields. 
+                Input array to be filled later*@
+                @*TS-01:38:54-02:19:55 class needs to be form-select instead of 
+                form-control else we wont see the arrow for the dropdown*@
+                <InputSelect id="genre" @bind-Value="game.GenreId" class="form-select">
+                    @*TS-01:38:54-02:19:55 default null option tag to show placeholder*@
+                    <option value="">Select a genre</option>
+                    @*TS-01:38:54-02:19:55 generating the option rows out of all the options available*@
+                    @foreach (var genre in genres)
+                    {
+                        @*TS-01:38:54-02:19:55 genreId will send in object that we 
+                        capture and we show the genre Name to the user*@
+                        <option value="@genre.Id">@genre.Name</option>
+                    }
+                </InputSelect>
+                @*TS-02:53:03-03:08:57 Validation messages added, need to specifidy validations applied for which field to be shown here*@
+                <ValidationMessage For="()=> game.GenreId" />
+            </div>
+            @*TS-01:38:54-02:19:55 creating these input sections same as the first*@
+            <div class="mb-3">
+                @*TS-01:38:54-02:19:55 replacing labels with Price Field*@
+                <label for="price" class="form-label">Price:</label>
+                @*TS-01:38:54-02:19:55 changing to InputNumber instead of InputText*@
+                @*TS-01:38:54-02:19:55 replacing id and field mapped with Price Fields.*@
+                <InputNumber id="price" @bind-Value="game.Price" class="form-control"></InputNumber>
+                @*TS-02:53:03-03:08:57 Validation messages added, need to specifidy validations applied for which field to be shown here*@
+                <ValidationMessage For="()=> game.Price" />
+            </div>
+            @*TS-01:38:54-02:19:55 creating these input sections same as the first*@
+            <div class="mb-3">
+                @*TS-01:38:54-02:19:55 replacing labels with ReleaseDate Field*@
+                <label for="releaseDate" class="form-label">Release Date:</label>
+                @*TS-01:38:54-02:19:55 changing to InputDate instead of InputText*@
+                @*TS-01:38:54-02:19:55 replacing id and field mapped with ReleaseDate Fields.*@
+                <InputDate id="releaseDate" @bind-Value="game.ReleaseDate" class="form-control"></InputDate>
+            </div>
+            @*TS-01:38:54-02:19:55 button created to trigger OnSubmit with bootstrap css*@
+            <button type="submit" class="btn btn-primary">Save</button>
+            @* TS-02:19:55-02:32:35 Cancel Button to stop form filling and redirect back to Home Page*@
+            <a role="button" class="btn btn-secondary" href="/">Cancel</a>
+            </EditForm>
+        </div>
+    </div>
+}
+
+@code {
+    // TS-03:08:57-03:55:36 Capturing the route parameters Id
+    [Parameter]
+    public int? Id {get; set;}
+
+    // TS-01:38:54-02:19:55 created or instantiated GameDetails Model
+    // TS-01:38:54-02:19:55 Important add SupplyParameterFromForm 
+    // TS-01:38:54-02:19:55 to inform Blazer that this object here 
+    // TS-01:38:54-02:19:55 is going to contain all the data, otherwise 
+    // TS-01:38:54-02:19:55 it wont know that it has to contain all the 
+    // TS-01:38:54-02:19:55 data supplied in the form With this attribute 
+    // TS-01:38:54-02:19:55 blazer will populate this gameobject with all of the data entered by the user
+    // TS-03:08:57-03:55:36 Initialization done with "can be null" attribute - defined conditionally in OnParametersSet
+    [SupplyParameterFromForm]
+    private GameDetails? game {get; set;}
+    
+    @* TS-03:08:57-03:55:36 commented code due to implementation in OnParametersSet
+    = new()
+    {
+        // TS-01:38:54-02:19:55 initializing non nullable variables of Name
+        Name = string.Empty,
+        // TS-01:38:54-02:19:55 starting with todays date for release date
+        ReleaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+    };
+    *@
+
+    // TS-01:38:54-02:19:55 
+    // TS-02:32:35-02:53:03 We are creating a new instance of game client here and in Home.razor
+    // TS-02:32:35-02:53:03 this is why the list of games in Home.razor is not updating when we 
+    // TS-02:32:35-02:53:03 add a new game as the instances are different. Here is where we will
+    // TS-02:32:35-02:53:03 use dependency injection to update the instances
+    // TS-02:32:35-02:53:03 commented code during this timestamp to instead use dependency injection:
+    // TS-02:32:35-02:53:03 private GamesClient gamesClient = new();
+
+    // TS-01:38:54-02:19:55 genresClient Instantiated
+    // TS-02:32:35-02:53:03 commenting this new instance generation to replace with dependency injection
+    // TS-02:32:35-02:53:03 private GenresClient genresClient = new();
+
+    // TS-01:38:54-02:19:55 genre will be null, we will us a lifecycle for this variable soon
+    private Genre[]? genres;
+
+    // TS-03:08:57-03:55:36 Dynamic Title for the Edit Game Page
+    private string title = string.Empty;
+
+    // TS-03:08:57-03:55:36 Logic to conditionally handle if Id is present or absent
+    // TS-04:31:03-04:55:35 converting to async
+    // TS-04:31:03-04:55:35 protected override void OnParametersSet() changed to protected override async Task OnParametersSetAsync()
+    protected override async Task OnParametersSetAsync()
+    {
+        // TS-03:08:57-03:55:36 This function gets invoked first time the application loads
+        // TS-03:08:57-03:55:36 It also gets triggered when we submit the form on page
+        // TS-03:08:57-03:55:36 To avoid this breaking our application and 
+        // TS-03:08:57-03:55:36 allowing user to submit the data
+        if(game is not null)
+        {
+            return;
+        }
+
+        // TS-03:08:57-03:55:36 checking if Id is present
+        if(Id is not null)
+        {
+            // TS-03:08:57-03:55:36 Id is present logic
+            // TS-04:31:03-04:55:35 converting to async await, earlier code below
+            // TS-04:31:03-04:55:35 game = GamesClient.GetGame(Id.Value);
+            game = await GamesClient.GetGamesAsync(Id.Value);
+
+            // TS-03:08:57-03:55:36 Dynamic Title
+            title = $"Edit {game.Name}";
+        }
+        else
+        {
+            // TS-03:08:57-03:55:36 Id is not present logic
+            // TS-03:08:57-03:55:36 same as logic above for: 
+            // TS-03:08:57-03:55:36 private GameDetails game
+            game = new()
+            {
+                // TS-01:38:54-02:19:55 initializing non nullable variables of Name
+                Name = string.Empty,
+                // TS-01:38:54-02:19:55 starting with todays date for release date
+                ReleaseDate = DateOnly.FromDateTime(DateTime.UtcNow)
+            };
+
+            // TS-03:08:57-03:55:36 Dynamic Title
+            title = "New Game";
+        }
+    }
+
+    // TS-01:38:54-02:19:55 
+    // TS-04:31:03-04:55:35 protected override void OnInitialized()
+    protected override async Task OnInitializedAsync()
+    {
+        // TS-01:38:54-02:19:55 
+        // TS-02:32:35-02:53:03 using the dependency injected instance of GenresClient instead
+        // TS-04:31:03-04:55:35 genres = GenresClient.GetGenres();
+        genres = await GenresClient.GetGenresAsync();
+    }
+
+    // TS-01:38:54-02:19:55 when user submits this function invoked
+    // TS-04:31:03-04:55:35 converting to async await, earlier code below
+    // TS-04:31:03-04:55:35 private void HandleSubmit() changed to private async Task HandleSubmitAsync()
+    private async Task HandleSubmitAsync()
+    {
+        // TS-03:08:57-03:55:36 Null Check added to avoid warnings and program break due to 
+        // TS-03:08:57-03:55:36 game variable possibility of null
+        ArgumentNullException.ThrowIfNull(game);
+        // TS-01:38:54-02:19:55 instantiate gamesClient above then use here
+        // TS-01:38:54-02:19:55 game is the instance user fills data in above
+        // TS-02:32:35-02:53:03 Using the injected instance of Games Client
+        // TS-02:32:35-02:53:03 Prefer Pascal Case for Dependency Injection
+        // TS-02:32:35-02:53:03 finally we need to register the service 
+        // TS-02:32:35-02:53:03 so that dependency Injection works
+        // TS-03:08:57-03:55:36 modifying a logic to work for add and edit game
+        if(Id is null)
+        {
+            // TS-04:31:03-04:55:35 converting to async await, earlier code below
+            // TS-04:31:03-04:55:35 GamesClient.AddGame(game);
+            await GamesClient.AddGameAsync(game);
+        }
+        else
+        {
+            // TS-03:08:57-03:55:36 populate the id before we send
+            game.Id = Id.Value;
+            
+            // TS-04:31:03-04:55:35 converting to async await, earlier code below
+            // GamesClient.UpdateGame(game);
+            await GamesClient.UpdateGameAsync(game);
+        }
+        
+
+        // TS-02:19:55-02:32:35 Navigating back to root component after adding game
+        NavigationManager.NavigateTo("/");
+    }
+}
