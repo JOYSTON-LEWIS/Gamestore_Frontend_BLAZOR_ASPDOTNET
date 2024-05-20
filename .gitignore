@@ -55,7 +55,7 @@ GameStore.Api.csproj
 GameStore.Api.sln
 GameStore.db
 # genres.http
-Program.cs
+# Program.cs
 
 # Blazor frontend specific folders and files
 # Clients/
